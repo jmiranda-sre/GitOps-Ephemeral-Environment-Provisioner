@@ -1,0 +1,47 @@
+groups:
+  - name: ephemeral-env
+    rules:
+      - alert: ProvisioningHighFailureRate
+        expr: rate(eph_provisioning_total{result="failure"}[5m]) / rate(eph_provisioning_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High provision failure rate (>10%)"
+          description: "More than 10% of provisioning attempts are failing"
+
+      - alert: ProvisioningSlow
+        expr: histogram_quantile(0.95, rate(eph_provisioning_duration_seconds_bucket[5m])) > 120
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Provisioning is slow (p95 > 120s)"
+          description: "95th percentile provisioning time exceeds 2 minutes"
+
+      - alert: TooManyActiveEnvironments
+        expr: sum(eph_active_environments) > 8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Near max concurrent environments"
+          description: "Active environments approaching the limit of 10"
+
+      - alert: QueueBacklog
+        expr: eph_queue_size{status="waiting"} > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Task queue backlog growing"
+          description: "More than 5 tasks waiting in queue for 10 minutes"
+
+      - alert: TeardownFailed
+        expr: rate(eph_teardown_duration_seconds_count{result="failure"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Environment teardown is failing"
+          description: "Teardown failures can cause resource leaks and cost overruns"

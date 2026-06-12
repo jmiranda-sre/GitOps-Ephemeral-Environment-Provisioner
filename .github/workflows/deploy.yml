@@ -1,0 +1,28 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to staging
+        run: |
+          echo "Deploying ${{ github.ref_name }} to staging"
+          # docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to production
+        run: |
+          echo "Deploying ${{ github.ref_name }} to production"
+          # docker compose -f docker-compose.yml -f docker-compose.production.yml up -d
